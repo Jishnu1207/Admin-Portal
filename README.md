@@ -36,7 +36,7 @@ A comprehensive admin portal built with Symfony that provides robust customer an
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Jishnu1207/Admin-Portal.git
 cd admin-portal
 ```
 
