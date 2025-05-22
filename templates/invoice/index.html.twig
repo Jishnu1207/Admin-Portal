@@ -1,0 +1,195 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Invoice List{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Invoice List</h1>
+        <div>
+            {# Filter Toggle Button #}
+            <button class="btn btn-secondary me-2" type="button" data-bs-toggle="collapse" data-bs-target="#filterOptions" aria-expanded="false" aria-controls="filterOptions">
+                <img src="{{ asset('icons/filter.svg') }}" alt="Filter Icon" style="width: 1em; height: 1em; fill: currentColor;">
+            </button>
+            <a href="{{ path('app_invoice_new') }}" class="btn btn-primary">Create New Invoice</a>
+        </div>
+    </div>
+
+    {# Filter Options Container #}
+    <div class="collapse" id="filterOptions">
+        <div class="card card-body">
+            {# Search by customer name Form #}
+            <form method="get" action="{{ path('app_invoice_index') }}" class="mb-3">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="q" placeholder="Search by customer name" value="{{ searchQuery }}">
+                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    {% if searchQuery %}
+                        <a href="{{ path('app_invoice_index', {'limit': limit}) }}" class="btn btn-outline-secondary">Clear Search</a>
+                    {% endif %}
+                    {# Keep other filters when searching #}
+                    <input type="hidden" name="status" value="{{ statusFilter|default('') }}">
+                    <input type="hidden" name="start_date" value="{{ startDate|default('') }}">
+                    <input type="hidden" name="end_date" value="{{ endDate|default('') }}">
+                    <input type="hidden" name="min_amount" value="{{ minAmount|default('') }}">
+                    <input type="hidden" name="max_amount" value="{{ maxAmount|default('') }}">
+                    <input type="hidden" name="limit" value="{{ limit|default('10') }}">
+                </div>
+            </form>
+
+            {# Add Amount Range Filter Form #}
+            <form method="get" action="{{ path('app_invoice_index') }}" class="mb-3">
+                <div class="input-group">
+                    <label for="min-amount" class="input-group-text">Min Amount:</label>
+                    <input type="number" id="min-amount" name="min_amount" class="form-control" step="0.01" min="0" value="{{ minAmount|default('') }}" placeholder="0.00">
+                    <label for="max-amount" class="input-group-text">Max Amount:</label>
+                    <input type="number" id="max-amount" name="max_amount" class="form-control" step="0.01" min="0" value="{{ maxAmount|default('') }}" placeholder="0.00">
+                    <button class="btn btn-outline-secondary" type="submit">Filter</button>
+                    {% if minAmount or maxAmount %}
+                        <a href="{{ path('app_invoice_index', {'limit': limit, 'q': searchQuery, 'status': statusFilter, 'start_date': startDate, 'end_date': endDate}) }}" class="btn btn-outline-secondary">Clear Amount</a>
+                    {% endif %}
+                    {# Keep existing filters when filtering by amount #}
+                    <input type="hidden" name="q" value="{{ searchQuery|default('') }}">
+                    <input type="hidden" name="status" value="{{ statusFilter|default('') }}">
+                    <input type="hidden" name="start_date" value="{{ startDate|default('') }}">
+                    <input type="hidden" name="end_date" value="{{ endDate|default('') }}">
+                    <input type="hidden" name="limit" value="{{ limit|default('10') }}">
+                </div>
+            </form>
+
+            {# Add Date Range Filter Form #}
+            <form method="get" action="{{ path('app_invoice_index') }}" class="mb-3">
+                <div class="input-group">
+                    <label for="start-date" class="input-group-text">Start Date:</label>
+                    <input type="date" id="start-date" name="start_date" class="form-control" value="{{ startDate|default('') }}">
+                    <label for="end-date" class="input-group-text">End Date:</label>
+                    <input type="date" id="end-date" name="end_date" class="form-control" value="{{ endDate|default('') }}">
+                    <button class="btn btn-outline-secondary" type="submit">Filter</button>
+                    {% if startDate or endDate %}
+                        <a href="{{ path('app_invoice_index', {'limit': limit, 'q': searchQuery, 'status': statusFilter}) }}" class="btn btn-outline-secondary">Clear Dates</a>
+                    {% endif %}
+                    {# Keep existing search query, status filter and limit when filtering by date #}
+                    <input type="hidden" name="q" value="{{ searchQuery|default('') }}">
+                    <input type="hidden" name="status" value="{{ statusFilter|default('') }}">
+                    <input type="hidden" name="limit" value="{{ limit|default('10') }}">
+                </div>
+            </form>
+
+            {# Add Status Filter Form #}
+            <form method="get" action="{{ path('app_invoice_index') }}" class="mb-3">
+                <div class="input-group">
+                    <label for="status-filter" class="input-group-text">Status:</label>
+                    <select id="status-filter" name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="" {{ status is not defined or status == '' ? 'selected' : '' }}>All</option>
+                        <option value="0" {{ status is defined and status == '0' ? 'selected' : '' }}>Unpaid</option>
+                        <option value="1" {{ status is defined and status == '1' ? 'selected' : '' }}>Paid</option>
+                        <option value="2" {{ status is defined and status == '2' ? 'selected' : '' }}>Cancelled</option>
+                    </select>
+                    {# Keep existing search query and limit when filtering by status #}
+                    <input type="hidden" name="q" value="{{ searchQuery|default('') }}">
+                    <input type="hidden" name="limit" value="{{ limit|default('10') }}">
+                    <input type="hidden" name="start_date" value="{{ startDate|default('') }}">
+                    <input type="hidden" name="end_date" value="{{ endDate|default('') }}">
+                    <input type="hidden" name="min_amount" value="{{ minAmount|default('') }}">
+                    <input type="hidden" name="max_amount" value="{{ maxAmount|default('') }}">
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    {% if invoices is empty %}
+        <div class="alert alert-info text-center" role="alert">
+            No invoices found.
+        </div>
+    {% else %}
+         <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                Showing {{ invoices|length }} of {{ totalInvoices }} invoices
+            </div>
+            <div>
+                Items per page:
+                <select onchange="window.location.href = this.value">
+                    {% for limitOption in validLimits %}
+                        <option value="{{ path('app_invoice_index', {'limit': limitOption, 'q': searchQuery}) }}" {{ limit == limitOption ? 'selected' : '' }}>
+                            {{ limitOption }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+            {% for invoice in invoices %}
+                <tr>
+                    <td>{{ invoice.id }}</td>
+                    {# Assuming invoice.customer is a Customer object with a name property #}
+                    <td>{{ invoice.customer ? invoice.customer.name : 'N/A' }}</td>
+                    <td>{{ invoice.date ? invoice.date|date('Y-m-d') : '' }}</td>
+                    <td>{{ invoice.amount }}</td>
+                    <td>
+                        {% if invoice.status == 0 %}
+                            Unpaid
+                        {% elseif invoice.status == 1 %}
+                            Paid
+                        {% else %}
+                            Cancelled
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ path('app_invoice_edit', {'id': invoice.id}) }}" class="btn btn-sm btn-warning">Edit</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No invoices found</td>
+                </tr>
+            {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# Pagination #}
+        {% set totalPages = (totalInvoices / limit)|round(0, 'ceil') %}
+        {% if totalPages > 1 %}
+            <nav aria-label="Invoice list pagination">
+                <ul class="pagination justify-content-center">
+                    {# Previous Page #}
+                    <li class="page-item {{ currentPage == 1 ? 'disabled' : '' }}">
+                        <a class="page-link" href="{{ path('app_invoice_index', {'page': currentPage - 1, 'limit': limit, 'q': searchQuery}) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    {# Page Numbers #}
+                    {% for i in 1..totalPages %}
+                        <li class="page-item {{ currentPage == i ? 'active' : '' }}">
+                            <a class="page-link" href="{{ path('app_invoice_index', {'page': i, 'limit': limit, 'q': searchQuery}) }}">{{ i }}</a>
+                        </li>
+                    {% endfor %}
+
+                    {# Next Page #}
+                    <li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
+                        <a class="page-link" href="{{ path('app_invoice_index', {'page': currentPage + 1, 'limit': limit, 'q': searchQuery}) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% endif %}
+</div>
+{% endblock %} 

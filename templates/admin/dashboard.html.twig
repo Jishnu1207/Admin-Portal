@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Welcome to Admin Portal</h1>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Customers</h5>
+                    <p class="card-text">Manage your customer database</p>
+                    <a href="{{ path('app_customer_index') }}" class="btn btn-primary">View Customers</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Invoices</h5>
+                    <p class="card-text">Manage your invoices</p>
+                    <a href="{{ path('app_invoice_index') }}" class="btn btn-primary">View Invoices</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

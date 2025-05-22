@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Log List{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Log List</h1>
+        <div>
+            {# Filter Toggle Button #}
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterOptions" aria-expanded="false" aria-controls="filterOptions">
+                <img src="{{ asset('icons/filter.svg') }}" alt="Filter Icon" style="width: 1em; height: 1em; fill: currentColor;">
+            </button>
+        </div>
+    </div>
+
+    {# Filter Options Container #}
+    <div class="collapse" id="filterOptions">
+        <div class="card card-body">
+            {# Add Type Filter Form #}
+            <form method="get" action="{{ path('app_log_index') }}" class="mb-3">
+                <div class="input-group">
+                    <label for="type-filter" class="input-group-text">Type:</label>
+                    <select id="type-filter" name="type" class="form-select" onchange="this.form.submit()">
+                        <option value="" {{ typeFilter is not defined or typeFilter == '' ? 'selected' : '' }}>All Types</option>
+                        {% for type in logTypes %}
+                            <option value="{{ type }}" {{ typeFilter is defined and typeFilter == type ? 'selected' : '' }}>
+                                {{ type }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if typeFilter %}
+                        <a href="{{ path('app_log_index') }}" class="btn btn-outline-secondary">Clear Filter</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if logs is empty %}
+        <div class="alert alert-info text-center" role="alert">
+            No logs found.
+        </div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Level</th>
+                        <th>Message</th>
+                        <th>Timestamp</th>
+                        <th>User ID</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ log.id }}</td>
+                        <td>{{ log.type }}</td>
+                        <td>{{ log.level }}</td>
+                        <td>{{ log.message }}</td>
+                        <td>{{ log.timestamp ? log.timestamp|date('Y-m-d H:i:s') : '' }}</td>
+                        <td>{{ log.userId }}</td>
+                        <td>{{ log.details }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 
