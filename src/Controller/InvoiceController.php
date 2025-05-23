@@ -38,8 +38,8 @@ class InvoiceController extends AbstractController
         $statusFilter = $request->query->get('status');
         $startDate = $request->query->get('start_date');
         $endDate = $request->query->get('end_date');
-        $minAmount = $request->query->get('min_amount');
-        $maxAmount = $request->query->get('max_amount');
+        $minAmount = $request->query->get('min_amount') ? (float)$request->query->get('min_amount') : null;
+        $maxAmount = $request->query->get('max_amount') ? (float)$request->query->get('max_amount') : null;
 
         $validLimits = [10, 20, 50];
         $validStatuses = ['all', '0', '1', '2']; // 'all' for no filter, 0:Unpaid, 1:Paid, 2:Cancelled

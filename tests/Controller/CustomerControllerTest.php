@@ -101,3 +101,4 @@ class CustomerControllerTest extends TestCase
         $this->assertEquals('rendered template', $response->getContent());
     }
 }
+ 

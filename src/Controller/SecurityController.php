@@ -32,3 +32,4 @@ class SecurityController extends AbstractController
         throw new \App\Exception\LogoutNotConfiguredException();
     }
 }
+ 
